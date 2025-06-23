@@ -31,3 +31,16 @@ export type CompanyModelType = {
     _id: string;
     name: string;
 };
+
+export type FeedbackStats = {
+  positive: number;
+  neutral: number;
+  negative: number;
+};
+
+export type FeedbackAVG = {
+  averageRating: number;
+  total: number;
+  ratingCounts: number[];
+  ratingDistribution: number[];
+};

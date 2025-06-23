@@ -1,9 +1,9 @@
 import AIServer from './AIServer';
 
 export interface FeedbackAnalysisModel {
-    negative: string,
-    neutral: string,
-    positive: string
+    Negative: string,
+    Neutral: string,
+    Positive: string
 }
 
 class FeedbackAnalysisService {

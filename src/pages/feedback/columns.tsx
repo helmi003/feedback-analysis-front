@@ -1,46 +1,31 @@
-import { Input, Select, Button, Rate, Space, Tag } from 'antd';
-import { SmileOutlined, FileTextOutlined, SearchOutlined } from '@ant-design/icons';
+import { Input, Select, Button, Rate, Tag, Row, Col, Spin } from 'antd';
+import { FileTextOutlined, SearchOutlined } from '@ant-design/icons';
 import type { FeedbackItemType } from '../../models/feedback/response';
 import { FEEDBACK_STATUS, type FeedbackStatusType } from '../../constants/consts';
-import { createIntl, createIntlCache, type FormatDateOptions } from 'react-intl';
+import { formatDateTimeString } from '../../constants/dateformatter';
+import './spin.css';
 
 const { Option } = Select;
 
 const statusOptions: FeedbackStatusType[] = Object.values(FEEDBACK_STATUS);
 
+const statusColors: Record<FeedbackStatusType, string> = {
+  excellent: 'green',
+  good: 'blue',
+  neutral: 'gold',
+  bad: 'orange',
+  terrible: 'red',
+};
+
 export function getColumns(params: {
-  searchTerm: string;
-  setSearchTerm: (val: string) => void;
-  filterRating: number | null;
-  setFilterRating: (val: number | null) => void;
-  filterStatus: string | null;
-  setFilterStatus: (val: string | null) => void;
-  filterCompany: string | null;
-  setFilterCompany: (val: string | null) => void;
-  filterConference: string | null;
-  setFilterConference: (val: string | null) => void;
-  ratingOptions: number[];
-  statusColors: Record<FeedbackStatusType, string>;
-  onAnalyzeSentiment: (comment: string) => void;
   onViewMore: (feedback: FeedbackItemType) => void;
   truncate: (text: string, length?: number) => string;
+  loadingRows: Record<string, boolean>;
 }) {
   const {
-    searchTerm,
-    setSearchTerm,
-    filterRating,
-    setFilterRating,
-    filterStatus,
-    setFilterStatus,
-    filterCompany,
-    setFilterCompany,
-    filterConference,
-    setFilterConference,
-    ratingOptions,
-    statusColors,
-    onAnalyzeSentiment,
     onViewMore,
     truncate,
+    loadingRows,
   } = params;
 
   return [
@@ -48,109 +33,46 @@ export function getColumns(params: {
       title: 'Created By',
       dataIndex: ['createdBy', 'fullName'],
       key: 'createdBy',
+      sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
+        (a.createdBy?.fullName || '').localeCompare(b.createdBy?.fullName || ''),
     },
     {
-      title: (
-        <Input
-          placeholder="Conference"
-          value={filterConference || ''}
-          onChange={(e) => setFilterConference(e.target.value || null)}
-          allowClear
-          style={{ width: 200 }}
-          onPressEnter={() => setFilterConference(filterConference)}
-          onBlur={() => setFilterConference(filterConference)}
-          onClear={() => setFilterConference(null)}
-        />
-      ),
+      title: 'Conference',
       dataIndex: ['conference', 'title'],
       key: 'conference',
+      sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
+        (a.conference?.title || '').localeCompare(b.conference?.title || ''),
     },
     {
-      title: (
-        <Input
-          placeholder="Company"
-          value={filterCompany || ''}
-          onChange={(e) => setFilterCompany(e.target.value || null)}
-          allowClear
-          style={{ width: 200 }}
-          onPressEnter={() => setFilterCompany(filterCompany)}
-          onBlur={() => setFilterCompany(filterCompany)}
-          onClear={() => setFilterCompany(null)}
-        />
-      ),
+      title: 'Company',
       dataIndex: ['company', 'name'],
       key: 'company',
+      sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
+        (a.company?.name || '').localeCompare(b.company?.name || ''),
     },
     {
-      title: (
-        <div onClick={(e) => e.stopPropagation()}>
-          <Input
-            placeholder="Comment"
-            prefix={<SearchOutlined />}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            allowClear={{
-              clearIcon: (
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSearchTerm('');
-                  }}
-                >
-                  ×
-                </span>
-              )
-            }}
-            style={{ width: 250 }}
-            onPressEnter={() => setSearchTerm(searchTerm)}
-            onBlur={() => setSearchTerm(searchTerm)}
-          />
-        </div>
-      ),
+      title: 'Comment',
       dataIndex: 'comment',
       key: 'comment',
       render: (text: string) => truncate(text),
+      sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
+        (a.comment || '').localeCompare(b.comment || ''),
     },
     {
-      title: (
-        <Select
-          placeholder="Rating"
-          allowClear
-          onChange={(value) => setFilterRating(value)}
-          style={{ width: 120 }}
-          value={filterRating || undefined}
-        >
-          {ratingOptions.map((r) => (
-            <Option key={r} value={r}>
-              {r} <Rate disabled defaultValue={1} count={1} style={{ color: '#faad14' }} />
-            </Option>
-          ))}
-        </Select>
-      ),
+      title: 'Rating',
       dataIndex: 'rating',
       key: 'rating',
       render: (rating: number) => <Rate disabled defaultValue={rating} style={{ color: '#faad14' }} />,
+      sorter: (a: FeedbackItemType, b: FeedbackItemType) => a.rating - b.rating,
       width: 180,
     },
     {
-      title: (
-        <Select
-          placeholder="Status"
-          allowClear
-          onChange={(value) => setFilterStatus(value)}
-          style={{ width: 150 }}
-          value={filterStatus || undefined}
-        >
-          {statusOptions.map((status) => (
-            <Option key={status} value={status}>
-              <Tag color={statusColors[status] || 'default'}>{status}</Tag>
-            </Option>
-          ))}
-        </Select>
-      ),
+      title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => <Tag color={statusColors[status as FeedbackStatusType] || 'default'}>{status}</Tag>,
+      sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
+        (a.status || '').localeCompare(b.status || ''),
       width: 140,
     },
     {
@@ -165,49 +87,116 @@ export function getColumns(params: {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: FeedbackItemType) => (
-        <Space size="middle">
+      render: (_: any, record: FeedbackItemType) => {
+        const isLoading = loadingRows[record._id] || false;
+
+        return (
           <Button
-            icon={<SmileOutlined />}
-            onClick={() => onAnalyzeSentiment(record.comment)}
+            icon={isLoading ? <Spin className="white-spinner" size="small" /> : <FileTextOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewMore(record);
+            }}
             type="primary"
             size="small"
+            disabled={isLoading}
+            loading={isLoading}
           >
-            Analyze Sentiment
+            {isLoading ? "Loading..." : "View More"}
           </Button>
-          <Button
-            icon={<FileTextOutlined />}
-            onClick={() => onViewMore(record)}
-            size="small"
-          >
-            View More
-          </Button>
-        </Space>
-      ),
+        );
+      },
       width: 220,
-    },
+    }
   ];
 }
 
-const cache = createIntlCache();
+export function getFilterComponents(params: {
+  searchTerm: string;
+  setSearchTerm: (val: string) => void;
+  filterRating: number | null;
+  setFilterRating: (val: number | null) => void;
+  filterStatus: string | null;
+  setFilterStatus: (val: string | null) => void;
+  filterCompany: string | null;
+  setFilterCompany: (val: string | null) => void;
+  filterConference: string | null;
+  setFilterConference: (val: string | null) => void;
+  ratingOptions: number[];
+  statusColors: Record<FeedbackStatusType, string>;
+}) {
+  const {
+    searchTerm,
+    setSearchTerm,
+    filterRating,
+    setFilterRating,
+    filterStatus,
+    setFilterStatus,
+    filterCompany,
+    setFilterCompany,
+    filterConference,
+    setFilterConference,
+    ratingOptions,
+    statusColors,
+  } = params;
 
-export const intl = createIntl(
-  {
-    locale: 'en',
-    messages: {},
-  },
-  cache,
-);
-
-export function formatDateTimeString(
-  value: Date | string | number,
-  options: Intl.DateTimeFormatOptions = {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-  },
-) {
-  return intl.formatDate(new Date(value), options);
+  return (
+    <Row gutter={16} style={{ marginBottom: 16 }}>
+      <Col span={4}>
+        <Input
+          placeholder="Conference"
+          value={filterConference || ''}
+          onChange={(e) => setFilterConference(e.target.value || null)}
+          allowClear
+        />
+      </Col>
+      <Col span={4}>
+        <Input
+          placeholder="Company"
+          value={filterCompany || ''}
+          onChange={(e) => setFilterCompany(e.target.value || null)}
+          allowClear
+        />
+      </Col>
+      <Col span={6}>
+        <Input
+          placeholder="Search comments"
+          prefix={<SearchOutlined />}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          allowClear
+        />
+      </Col>
+      <Col span={4}>
+        <Select
+          placeholder="Filter by rating"
+          allowClear
+          onChange={(value) => setFilterRating(value)}
+          style={{ width: '100%' }}
+          value={filterRating || undefined}
+        >
+          {ratingOptions.map((r) => (
+            <Option key={r} value={r}>
+              {r} <Rate disabled defaultValue={1} count={1} style={{ color: '#faad14' }} />
+            </Option>
+          ))}
+        </Select>
+      </Col>
+      <Col span={4}>
+        <Select
+          placeholder="Filter by status"
+          allowClear
+          onChange={(value) => setFilterStatus(value)}
+          style={{ width: '100%' }}
+          value={filterStatus || undefined}
+        >
+          {statusOptions.map((status) => (
+            <Option key={status} value={status}>
+              <Tag color={statusColors[status] || 'default'}>{status}</Tag>
+            </Option>
+          ))}
+        </Select>
+      </Col>
+    </Row>
+  );
 }

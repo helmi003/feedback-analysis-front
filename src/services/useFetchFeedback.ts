@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
-import { UrlSearchParams } from '../components/UrlSearchParams';
 import useQueryParams from './use-query-params';
 import { feedbackService } from './FeedbackService';
 import type { FeedbackItemType } from '../models/feedback/response';

@@ -3,14 +3,22 @@ import { Table } from 'antd';
 import useFetchFeedback from '../../services/useFetchFeedback';
 import type { FeedbackItemType } from '../../models/feedback/response';
 import { type FeedbackStatusType } from '../../constants/consts';
-import { getColumns } from './columns';
+import { getColumns, getFilterComponents } from './columns';
 import FeedbackModal from './feedbackDetails';
-import { feedbackAnalysisService, type FeedbackAnalysisModel } from '../../services/feedbackAnalysisService';
+import { feedbackAnalysisService, type FeedbackAnalysisModel } from '../../services/FeedbackAnalysisService';
 
 const truncate = (text: string, length = 20) =>
   text.length > length ? text.slice(0, length) + '...' : text;
 
 const ratingOptions = [1, 2, 3, 4, 5];
+
+const statusColors: Record<FeedbackStatusType, string> = {
+  excellent: 'green',
+  good: 'blue',
+  neutral: 'gold',
+  bad: 'orange',
+  terrible: 'red',
+};
 
 const ConferenceFeedbackList: React.FC = () => {
   const {
@@ -29,67 +37,58 @@ const ConferenceFeedbackList: React.FC = () => {
   } = useFetchFeedback();
 
   const loadingTable = response.isLoading || response.isError || response.isFetching;
+  const [loadingRows, setLoadingRows] = useState<Record<string, boolean>>({});
 
-  // Modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [modalFeedback, setModalFeedback] = useState<FeedbackItemType | null>(null);
+  const [feedbackAnalysis, setFeedbackAnalysis] = useState<FeedbackAnalysisModel | null>(null);
 
-  // Filter and search the data client-side (remove this if you want server-side filtering)
   const filteredData = useMemo(() => {
     if (!response.data?.docs) return [];
     return response.data.docs;
   }, [response.data?.docs]);
 
-  const onAnalyzeSentiment = async (comment: string) => {
-  alert(`Analyze sentiment for: "${comment}"`);
-  try {
-    const res = await feedbackAnalysisService.getAnalysis(comment);
-    // const data = res.data;
-    console.log('Sentiment Analysis Result:', res);
-  } catch (error) {
-    console.error('Error', error);
-  }
-};
-
-
-
-  const onViewMore = (feedback: FeedbackItemType) => {
-    setModalFeedback(feedback);
-    setModalVisible(true);
-  };
-
-  const statusColors: Record<FeedbackStatusType, string> = {
-    excellent: 'green',
-    good: 'blue',
-    neutral: 'gold',
-    bad: 'orange',
-    terrible: 'red',
+  const onViewMore = async (feedback: FeedbackItemType) => {
+    setLoadingRows(prev => ({ ...prev, [feedback._id]: true }));
+    try {
+      const res = await feedbackAnalysisService.getAnalysis(feedback.comment);
+      setModalFeedback(feedback);
+      setModalVisible(true);
+      setFeedbackAnalysis(res);
+    } catch (error) {
+      console.error('Error', error);
+    } finally {
+      setLoadingRows(prev => ({ ...prev, [feedback._id]: false }));
+    }
   };
 
   const columns = getColumns({
-    searchTerm,
-    setSearchTerm: handleSearchChange,
-    filterRating,
-    setFilterRating: handleRatingChange,
-    filterStatus,
-    setFilterStatus: handleStatusChange,
-    filterCompany,
-    setFilterCompany: handleCompanyChange,
-    filterConference,
-    setFilterConference: handleConferenceChange,
-    ratingOptions,
-    statusColors,
-    onAnalyzeSentiment,
     onViewMore,
     truncate,
+    loadingRows,
   });
 
   return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Conference Feedback</h1>
-      <p style={{ fontSize: '1.2rem', color: '#555', marginBottom: '2rem' }}>
+    <div style={{ padding: '2rem' }}>
+      <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', textAlign: 'center' }}>Conference Feedback</h1>
+      <p style={{ fontSize: '1.2rem', color: '#555', marginBottom: '2rem', textAlign: 'center' }}>
         Review and analyze feedback left by attendees for various conferences.
       </p>
+
+      {getFilterComponents({
+        searchTerm,
+        setSearchTerm: handleSearchChange,
+        filterRating,
+        setFilterRating: handleRatingChange,
+        filterStatus,
+        setFilterStatus: handleStatusChange,
+        filterCompany,
+        setFilterCompany: handleCompanyChange,
+        filterConference,
+        setFilterConference: handleConferenceChange,
+        ratingOptions,
+        statusColors,
+      })}
 
       <Table
         rowKey="_id"
@@ -108,6 +107,7 @@ const ConferenceFeedbackList: React.FC = () => {
         visible={modalVisible}
         feedback={modalFeedback}
         onClose={() => setModalVisible(false)}
+        feedbackAnalysis={feedbackAnalysis}
       />
     </div>
   );
