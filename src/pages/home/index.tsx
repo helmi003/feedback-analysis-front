@@ -1,19 +1,35 @@
-import React from 'react';
-import { Tabs } from 'antd';
+import React, { Suspense, lazy } from 'react';
+import { Tabs, Spin } from 'antd';
 import type { TabsProps } from 'antd';
-import FeedbackStatistics from '../statistics';
-import ConferenceFeedbackList from '../feedback';
+
+// Lazy load the components
+const FeedbackStatistics = lazy(() => import('../statistics'));
+const ConferenceFeedbackList = lazy(() => import('../feedback'));
+
+const LoadingSpinner = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+    <Spin size="large" tip="Loading..." />
+  </div>
+);
 
 const items: TabsProps['items'] = [
   {
     key: 'statistics',
     label: 'Statistics',
-    children: <FeedbackStatistics />,
+    children: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <FeedbackStatistics />
+      </Suspense>
+    ),
   },
   {
     key: 'conference-feedback',
     label: 'Conference Feedback',
-    children: <ConferenceFeedbackList />,
+    children: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <ConferenceFeedbackList />
+      </Suspense>
+    ),
   },
 ];
 

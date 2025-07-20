@@ -1,20 +1,14 @@
 import type { FeedbackModelType } from "./model";
 
 export type FeedbackItemType = Pick<
-    FeedbackModelType,
-    | '_id'
-    | 'comment'
-    | 'rating'
-    | 'status'
-    | 'createdBy'
-    | 'conference'
-    | 'companyId'
-    | 'createdAt'
+  FeedbackModelType,
+  '_id' | 'comment' | 'rating' | 'status' | 'createdBy' | 'conference' | 'companyId' | 'createdAt'
 > & {
-    createdBy: BasicUserInformationsType;
-    conference: Pick<ConferenceModelType, '_id' | 'title'>;
-    companyId: Pick<CompanyModelType, '_id' | 'name'>;
+  createdBy: BasicUserInformationsType;
+  conference: Pick<ConferenceModelType, '_id' | 'title'>;
+  companyId: Pick<CompanyModelType, '_id' | 'name'>;
 };
+
 
 export type BasicUserInformationsType = Pick<UserModelType, 'fullName'>;
 

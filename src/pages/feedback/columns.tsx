@@ -45,10 +45,10 @@ export function getColumns(params: {
     },
     {
       title: 'Company',
-      dataIndex: ['company', 'name'],
-      key: 'company',
+      dataIndex: ['companyId', 'name'],
+      key: 'companyId',
       sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
-        (a.company?.name || '').localeCompare(b.company?.name || ''),
+        (a.companyId?.name || '').localeCompare(b.companyId?.name || ''),
     },
     {
       title: 'Comment',

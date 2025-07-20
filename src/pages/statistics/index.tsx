@@ -73,7 +73,7 @@ const FeedbackStatistics: React.FC = () => {
                                     />
                                 </div>
                                 <Progress
-                                    percent={avgStats.ratingDistribution[star - 1]}
+                                    percent={parseFloat((avgStats.ratingDistribution[star - 1]).toFixed(2))}
                                     showInfo
                                     strokeColor="#1890ff"
                                     style={{ flex: 1 }}

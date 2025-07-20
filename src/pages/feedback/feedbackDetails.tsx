@@ -1,10 +1,12 @@
-import React from 'react';
-import { Modal, Rate, Tag, Tooltip, type TooltipProps } from 'antd';
+import React, { Suspense, lazy } from 'react';
+import { Modal, Rate, Tag, Spin } from 'antd';
 import type { FeedbackItemType } from '../../models/feedback/response';
 import { type FeedbackStatusType } from '../../constants/consts';
-import { Cell, Legend, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import type { FeedbackAnalysisModel } from '../../services/FeedbackAnalysisService';
 import { formatDateTimeString } from '../../constants/dateformatter';
+
+// Lazy load the chart component
+const SentimentChart = lazy(() => import('../../components/SentimentChart'));
 
 const statusColors: Record<FeedbackStatusType, string> = {
   excellent: 'green',
@@ -21,16 +23,8 @@ type FeedbackModalProps = {
   feedbackAnalysis: FeedbackAnalysisModel | null;
 };
 
-const colors = ['green', 'orange', 'red'];
-
 const FeedbackModal: React.FC<FeedbackModalProps> = ({ visible, feedback, onClose, feedbackAnalysis }) => {
   if (!feedback) return null;
-  
-  const chartData = feedbackAnalysis ? [
-    { name: 'Positive', value: feedbackAnalysis.Positive },
-    { name: 'Neutral', value: feedbackAnalysis.Neutral },
-    { name: 'Negative', value: feedbackAnalysis.Negative }
-  ] : [];
 
   return (
     <Modal 
@@ -58,60 +52,16 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ visible, feedback, onClos
         )}
       </div>
       <div style={{ marginBottom: 16 }}><b>Conference:</b> {feedback.conference?.title}</div>
-      <div style={{ marginBottom: 16 }}><b>Company:</b> {feedback.company?.name}</div>
+      <div style={{ marginBottom: 16 }}><b>Company:</b> {feedback.companyId?.name}</div>
       <div style={{ marginBottom: 16 }}><b>Created By:</b> {feedback.createdBy?.fullName}</div>
       <div style={{ marginBottom: 24 }}><b>Created At:</b> {formatDateTimeString(feedback.createdAt)}</div>
       
       {feedbackAnalysis && (
-        <div style={{ marginTop: 40 }}>
-          <h3 style={{ textAlign: 'center', marginBottom: 24 }}>Sentiment Analysis</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={chartData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                fill="#8884d8"
-                label
-              >
-                {chartData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={colors[index % colors.length]} 
-                    stroke={colors[index % colors.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <Suspense fallback={<div style={{ textAlign: 'center', padding: '2rem' }}><Spin size="large" tip="Loading chart..." /></div>}>
+          <SentimentChart feedbackAnalysis={feedbackAnalysis} />
+        </Suspense>
       )}
     </Modal>
-  );
-};
-
-const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
-  if (!active || !payload || !payload.length) return null;
-
-  const data = payload[0];
-  const color = data.color;
-
-  return (
-    <div style={{
-      backgroundColor: color,
-      padding: '8px 12px',
-      borderRadius: '8px',
-      color: 'white',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-    }}>
-      <p style={{ margin: 0, fontWeight: 'bold' }}>{data.name}</p>
-      <p style={{ margin: 0 }}>{data.value}%</p>
-    </div>
   );
 };
 
