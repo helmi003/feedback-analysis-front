@@ -9,7 +9,6 @@ const AIServer = axios.create({
 
 AIServer.interceptors.response.use(response => response.data);
 
-// Override the default Axios instance methods to return the correct types
 interface CustomAxiosInstance {
   get<T = any>(url: string, config?: any): Promise<T>;
   post<T = any>(url: string, data?: any, config?: any): Promise<T>;

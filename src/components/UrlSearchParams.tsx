@@ -1,10 +1,10 @@
-interface urlSearchParamsProps {
+interface UrlSearchParamsProps {
   param: string;
   value?: string | number | Array<string | number>;
   prevQuery?: string;
 }
 
-export const UrlSearchParams = ({ param, value = '', prevQuery = '' }: urlSearchParamsProps) => {
+export const UrlSearchParams = ({ param, value = '', prevQuery = '' }: UrlSearchParamsProps ) => {
   const urlParams = new URLSearchParams(prevQuery || window.location.search);
   const parsedValue = Array.isArray(value) ? value.join(',').trim() : value.toString().trim();
 

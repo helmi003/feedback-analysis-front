@@ -9,7 +9,6 @@ export type LabelValueModel<T = string> = {
   item?: T;
 };
 
-/** */
 export type TableColumnType<TModel, KEY extends keyof TModel = keyof TModel> = (
   | ColumnType<TModel>
   | ColumnGroupType<TModel>

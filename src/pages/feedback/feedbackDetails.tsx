@@ -33,7 +33,6 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ visible, feedback, onClos
       onCancel={onClose} 
       footer={null} 
       width={600}
-      destroyOnClose
     >
       <div style={{ marginBottom: 16 }}><b>Comment:</b> {feedback.comment}</div>
       <div style={{ marginBottom: 16 }}>

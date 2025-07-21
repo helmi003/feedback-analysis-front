@@ -18,7 +18,7 @@ const statusColors: Record<FeedbackStatusType, string> = {
 };
 
 export function getColumns(params: {
-  onViewMore: (feedback: FeedbackItemType) => void;
+  onViewMore: (feedback: FeedbackItemType) => void | Promise<void>;
   truncate: (text: string, length?: number) => string;
   loadingRows: Record<string, boolean>;
 }) {
@@ -34,21 +34,21 @@ export function getColumns(params: {
       dataIndex: ['createdBy', 'fullName'],
       key: 'createdBy',
       sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
-        (a.createdBy?.fullName || '').localeCompare(b.createdBy?.fullName || ''),
+        (a.createdBy?.fullName ?? '').localeCompare(b.createdBy?.fullName ?? ''),
     },
     {
       title: 'Conference',
       dataIndex: ['conference', 'title'],
       key: 'conference',
       sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
-        (a.conference?.title || '').localeCompare(b.conference?.title || ''),
+        (a.conference?.title ?? '').localeCompare(b.conference?.title ?? ''),
     },
     {
       title: 'Company',
       dataIndex: ['companyId', 'name'],
       key: 'companyId',
       sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
-        (a.companyId?.name || '').localeCompare(b.companyId?.name || ''),
+        (a.companyId?.name ?? '').localeCompare(b.companyId?.name ?? ''),
     },
     {
       title: 'Comment',
@@ -56,7 +56,7 @@ export function getColumns(params: {
       key: 'comment',
       render: (text: string) => truncate(text),
       sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
-        (a.comment || '').localeCompare(b.comment || ''),
+        (a.comment ?? '').localeCompare(b.comment ?? ''),
     },
     {
       title: 'Rating',
@@ -70,9 +70,9 @@ export function getColumns(params: {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => <Tag color={statusColors[status as FeedbackStatusType] || 'default'}>{status}</Tag>,
+      render: (status: string) => <Tag color={statusColors[status as FeedbackStatusType] ?? 'default'}>{status}</Tag>,
       sorter: (a: FeedbackItemType, b: FeedbackItemType) =>
-        (a.status || '').localeCompare(b.status || ''),
+        (a.status ?? '').localeCompare(b.status ?? ''),
       width: 140,
     },
     {
@@ -88,7 +88,7 @@ export function getColumns(params: {
       title: 'Actions',
       key: 'actions',
       render: (_: any, record: FeedbackItemType) => {
-        const isLoading = loadingRows[record._id] || false;
+        const isLoading = loadingRows[record._id] ?? false;
 
         return (
           <Button
@@ -145,16 +145,16 @@ export function getFilterComponents(params: {
       <Col span={4}>
         <Input
           placeholder="Conference"
-          value={filterConference || ''}
-          onChange={(e) => setFilterConference(e.target.value || null)}
+          value={filterConference ?? ''}
+          onChange={(e) => setFilterConference(e.target.value ?? null)}
           allowClear
         />
       </Col>
       <Col span={4}>
         <Input
           placeholder="Company"
-          value={filterCompany || ''}
-          onChange={(e) => setFilterCompany(e.target.value || null)}
+          value={filterCompany ?? ''}
+          onChange={(e) => setFilterCompany(e.target.value ?? null)}
           allowClear
         />
       </Col>
@@ -173,7 +173,7 @@ export function getFilterComponents(params: {
           allowClear
           onChange={(value) => setFilterRating(value)}
           style={{ width: '100%' }}
-          value={filterRating || undefined}
+          value={filterRating ?? undefined}
         >
           {ratingOptions.map((r) => (
             <Option key={r} value={r}>
@@ -188,11 +188,11 @@ export function getFilterComponents(params: {
           allowClear
           onChange={(value) => setFilterStatus(value)}
           style={{ width: '100%' }}
-          value={filterStatus || undefined}
+          value={filterStatus ?? undefined}
         >
           {statusOptions.map((status) => (
             <Option key={status} value={status}>
-              <Tag color={statusColors[status] || 'default'}>{status}</Tag>
+              <Tag color={statusColors[status] ?? 'default'}>{status}</Tag>
             </Option>
           ))}
         </Select>

@@ -43,7 +43,7 @@ const FeedbackStatistics: React.FC = () => {
         return <Alert type="error" message={error} />;
     }
 
-    if (!stats || !avgStats) {
+    if (!stats || !avgStats || avgStats.total === 0) {
         return null;
     }
 
@@ -147,12 +147,13 @@ const FeedbackStatistics: React.FC = () => {
             <h2 style={{ textAlign: 'center', marginTop: '2rem' }}>Top Feedbacks</h2>
             <Carousel autoplay autoplaySpeed={5000} dots>
                 {topFeedbacks.map((feedback) => (
-                    <div >
+                    <div key={feedback._id}>
                         <Card
                             style={{ margin: '4rem auto', width: "600px", marginTop: '2rem' }}
                             key={feedback._id}
                             actions={[
                                 <Rate
+                                    key={feedback._id}
                                     disabled
                                     value={feedback.rating}
                                     style={{ color: '#faad14' }}

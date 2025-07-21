@@ -51,7 +51,7 @@ export default function useFetchFeedback() {
   const response = useQuery(
     [
       'feedbacks',
-      parseInt(page) || 1,
+      parseInt(page) ?? 1,
       parseInt(limit),
       sorter.field,
       sorter.order,
@@ -118,15 +118,15 @@ export default function useFetchFeedback() {
   };
 
   const handleStatusChange = (status: string | null) => {
-    updateUrlParams({ status: status || undefined, page: '1' });
+    updateUrlParams({ status: status ?? undefined, page: '1' });
   };
 
   const handleCompanyChange = (company: string | null) => {
-    updateUrlParams({ company: company || undefined, page: '1' });
+    updateUrlParams({ company: company ?? undefined, page: '1' });
   };
 
   const handleConferenceChange = (conference: string | null) => {
-    updateUrlParams({ conference: conference || undefined, page: '1' });
+    updateUrlParams({ conference: conference ?? undefined, page: '1' });
   };
 
   return {
@@ -141,8 +141,8 @@ export default function useFetchFeedback() {
     handleConferenceChange,
     searchTerm: search,
     filterRating: rating ? parseInt(rating) : null,
-    filterStatus: status || null,
-    filterCompany: company || null,
-    filterConference: conference || null,
+    filterStatus: status ?? null,
+    filterCompany: company ?? null,
+    filterConference: conference ?? null,
   };
 }
