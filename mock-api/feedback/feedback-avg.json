@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "data": {
+    "averageRating": 4.25,
+    "totalRatings": 4,
+    "ratingBreakdown": {
+      "excellent": 2,
+      "good": 1,
+      "average": 1,
+      "poor": 0,
+      "terrible": 0
+    }
+  }
+}

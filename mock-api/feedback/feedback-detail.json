@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "data": {
+    "id": "1",
+    "title": "Great Conference Experience",
+    "description": "The conference was very well organized and informative. The speakers were knowledgeable and the content was relevant to current industry trends.",
+    "rating": 5,
+    "status": "published",
+    "company": "Tech Corp",
+    "conference": "DevCon 2024",
+    "createdAt": "2024-01-15T10:30:00Z",
+    "updatedAt": "2024-01-15T10:30:00Z",
+    "tags": ["conference", "organization", "speakers"],
+    "location": "San Francisco, CA",
+    "attendeeCount": 500
+  }
+}

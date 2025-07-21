@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "data": {
+    "totalFeedbacks": 4,
+    "publishedFeedbacks": 3,
+    "pendingFeedbacks": 1,
+    "averageRating": 4.25,
+    "ratingDistribution": {
+      "5": 2,
+      "4": 1,
+      "3": 1,
+      "2": 0,
+      "1": 0
+    },
+    "statusDistribution": {
+      "published": 3,
+      "pending": 1,
+      "rejected": 0
+    }
+  }
+}

@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Frontend React Application - Development Mode
+  feedback-frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3002:3002"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_SERVER_API_URL=http://localhost:3000/
+      - VITE_FEEDBACK_API_URL=http://localhost:5000/
+    networks:
+      - feedback-network
+    depends_on:
+      - feedback-api
+      - analysis-api
+    restart: unless-stopped
+
+  # Mock Backend API Server (Port 3000)
+  feedback-api:
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./mock-api/feedback:/usr/share/nginx/html
+    networks:
+      - feedback-network
+    restart: unless-stopped
+
+  # Mock Analysis API Server (Port 5000)
+  analysis-api:
+    image: nginx:alpine
+    ports:
+      - "5000:80"
+    volumes:
+      - ./mock-api/analysis:/usr/share/nginx/html
+    networks:
+      - feedback-network
+    restart: unless-stopped
+
+networks:
+  feedback-network:
+    driver: bridge
