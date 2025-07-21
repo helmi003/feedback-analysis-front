@@ -62,7 +62,7 @@ export default function useFetchFeedback() {
       conference,
     ] as const,
     ({ queryKey }) => {
-      const [_, page, pageSize, field, order, search, status, rating, company, conference] = queryKey;
+      const [, page, pageSize, field, order, search, status, rating, company, conference] = queryKey;
 
       const filter: Record<string, any> = {};
       if (search?.trim()) {
