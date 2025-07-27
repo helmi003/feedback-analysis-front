@@ -163,9 +163,7 @@ describe('FeedbackStatistics', () => {
     const formattedElements = screen.getAllByText(/Formatted:/)
     expect(formattedElements.length).toBeGreaterThan(0)
     // Just check that any date is formatted with "Formatted:" prefix - don't be too specific about the date format
-    expect(screen.getByText((_, element) => {
-      return element?.textContent?.includes('Formatted:') || false
-    })).toBeInTheDocument()
+    expect(formattedElements[0]).toBeInTheDocument()
   })
 
   it('should handle missing stats data gracefully', async () => {
