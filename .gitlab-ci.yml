@@ -19,7 +19,7 @@ install-dependencies-job:
     - yarn
     - echo "Dependencies installed."
   cache:
-    key: deps-$CI_COMMIT_REF_SLUG
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
     paths:
       - node_modules/
   rules:
@@ -32,7 +32,7 @@ unit-test-job:
     - yarn test:run
     - echo "Unit tests completed."
   cache:
-    key: deps-$CI_COMMIT_REF_SLUG
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
     paths:
       - node_modules/
     policy: pull
@@ -43,7 +43,7 @@ unit-test-job:
 lint-test-job:
   stage: test
   cache:
-    key: deps-$CI_COMMIT_REF_SLUG
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
     paths:
       - node_modules/
     policy: pull
@@ -62,7 +62,7 @@ coverage-test-job:
     - yarn test:coverage
     - echo "Coverage tests completed."
   cache:
-    key: deps-$CI_COMMIT_REF_SLUG
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
     paths:
       - node_modules/
     policy: pull
@@ -80,13 +80,13 @@ coverage-test-job:
 
 sonar-test-job:
   stage: test
+  image: sonarsource/sonar-scanner-cli:latest
   script:
     - echo "Running SonarQube analysis..."
-    - chmod +x node_modules/sonar-scanner/bin/sonar-scanner
-    - yarn sonar
+    - sonar-scanner
     - echo "SonarQube analysis completed."
   cache:
-    key: deps-$CI_COMMIT_REF_SLUG
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
     paths:
       - node_modules/
     policy: pull
