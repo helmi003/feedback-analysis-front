@@ -1,0 +1,129 @@
+variables:
+  DOCKER_TLS_CERTDIR: '/certs'
+
+default:
+  image: node:22
+  services:
+    - docker:24.0.5-dind
+
+stages:
+  - install
+  - test
+  - build
+  - deploy
+
+install-dependencies-job:
+  stage: install
+  script:
+    - echo "Installing dependencies..."
+    - yarn
+    - echo "Dependencies installed."
+  cache:
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+    paths:
+      - node_modules/
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+
+unit-test-job:
+  stage: test
+  script:
+    - echo "Running unit tests..."
+    - yarn test:run
+    - echo "Unit tests completed."
+  cache:
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+    paths:
+      - node_modules/
+    policy: pull
+  needs: ['install-dependencies-job']
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+
+lint-test-job:
+  stage: test
+  cache:
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+    paths:
+      - node_modules/
+    policy: pull
+  needs: ['install-dependencies-job']
+  script:
+    - echo "Running lint tests..."
+    - yarn lint
+    - echo "Lint tests completed."
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+
+coverage-test-job:
+  stage: test
+  script:
+    - echo "Running tests with coverage..."
+    - yarn test:coverage
+    - echo "Coverage tests completed."
+  cache:
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+    paths:
+      - node_modules/
+    policy: pull
+  needs: ['install-dependencies-job']
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    paths:
+      - coverage/
+    expire_in: 1 week
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+
+sonar-test-job:
+  stage: test
+  script:
+    - echo "Running SonarQube analysis..."
+    - yarn sonar
+    - echo "SonarQube analysis completed."
+  cache:
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+    paths:
+      - node_modules/
+    policy: pull
+  needs: ['install-dependencies-job', 'coverage-test-job']
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+
+build-job:
+  stage: build
+  script:
+    - echo "Building Docker image..."
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - echo "Docker image built."
+  rules:
+    - if: ($CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+
+deploy-staging:
+  stage: deploy
+  script:
+    - echo "Deploying to staging..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - echo "Deployed to staging."
+  environment:
+    name: staging
+  needs: ['build-job']
+  rules:
+    - if: ($CI_COMMIT_TAG =~ /^staging-/)
+
+deploy-production:
+  stage: deploy
+  script:
+    - echo "Deploying to production..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - echo "Deployed to production."
+  environment:
+    name: production
+  needs: ['build-job']
+  rules:
+    - if: ($CI_COMMIT_TAG =~ /^production-/)
