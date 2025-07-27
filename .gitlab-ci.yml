@@ -82,6 +82,7 @@ sonar-test-job:
   stage: test
   script:
     - echo "Running SonarQube analysis..."
+    - chmod +x node_modules/sonar-scanner/bin/sonar-scanner
     - yarn sonar
     - echo "SonarQube analysis completed."
   cache:
