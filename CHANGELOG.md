@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.8](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.7...staging-0.0.8) (2025-07-27)
+
+
+### Bug Fixes
+
+* temporarily disable SonarQube job to prevent pipeline hangs ([ca5dea1](https://github.com/helmi003/feedback-analysis-front/commit/ca5dea13ce6c7512312ff029f31c0448170b7d3d))
+
 ### [0.0.7](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.6...staging-0.0.7) (2025-07-27)
 
 
