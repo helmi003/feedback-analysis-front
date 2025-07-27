@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.4](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.3...staging-0.0.4) (2025-07-27)
+
+
+### Bug Fixes
+
+* add execute permission for sonar-scanner in GitLab CI ([e535f67](https://github.com/helmi003/feedback-analysis-front/commit/e535f67d6fe1e37c68716f165959a260af6928b4))
+
 ### [0.0.3](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.2...staging-0.0.3) (2025-07-27)
 
 
