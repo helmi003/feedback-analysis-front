@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.5](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.4...staging-0.0.5) (2025-07-27)
+
+
+### Bug Fixes
+
+* use SonarQube Docker image and restore original cache key format ([3f4add9](https://github.com/helmi003/feedback-analysis-front/commit/3f4add989d0398e3110c12e53d80326eccf356fe))
+
 ### [0.0.4](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.3...staging-0.0.4) (2025-07-27)
 
 
