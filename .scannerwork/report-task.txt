@@ -2,5 +2,5 @@ projectKey=feedback-analysis-front
 serverUrl=http://localhost:9000
 serverVersion=25.7.0.110598
 dashboardUrl=http://localhost:9000/dashboard?id=feedback-analysis-front
-ceTaskId=a05f6c19-afbe-4795-b209-a4d2350d0a04
-ceTaskUrl=http://localhost:9000/api/ce/task?id=a05f6c19-afbe-4795-b209-a4d2350d0a04
+ceTaskId=4c5f91e8-09b0-48d9-9d95-cccd0051c365
+ceTaskUrl=http://localhost:9000/api/ce/task?id=4c5f91e8-09b0-48d9-9d95-cccd0051c365
