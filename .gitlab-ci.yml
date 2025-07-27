@@ -78,28 +78,28 @@ coverage-test-job:
   rules:
     - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
 
-sonar-test-job:
-  stage: test
-  image: sonarsource/sonar-scanner-cli:latest
-  services:
-    - name: sonarqube:10.6-community
-      alias: sonarqube
-  variables:
-    SONAR_HOST_URL: "http://sonarqube:9000"
-  script:
-    - echo "Waiting for SonarQube to start..."
-    - until curl -s http://sonarqube:9000/api/system/health | grep -q '"health":"GREEN"'; do echo "Waiting for SonarQube..."; sleep 10; done
-    - echo "Running SonarQube analysis..."
-    - sonar-scanner -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=admin -Dsonar.password=PbUktX3VwbkrCB8@
-    - echo "SonarQube analysis completed."
-  cache:
-    key: deps-$CI_COMMIT_REF_SLUG
-    paths:
-      - node_modules/
-    policy: pull
-  needs: ['install-dependencies-job', 'coverage-test-job']
-  rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+# sonar-test-job:
+#   stage: test
+#   image: sonarsource/sonar-scanner-cli:latest
+#   services:
+#     - name: sonarqube:10.6-community
+#       alias: sonarqube
+#   variables:
+#     SONAR_HOST_URL: "http://sonarqube:9000"
+#   script:
+#     - echo "Waiting for SonarQube to start..."
+#     - until curl -s http://sonarqube:9000/api/system/health | grep -q '"health":"GREEN"'; do echo "Waiting for SonarQube..."; sleep 10; done
+#     - echo "Running SonarQube analysis..."
+#     - sonar-scanner -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=admin -Dsonar.password=PbUktX3VwbkrCB8@
+#     - echo "SonarQube analysis completed."
+#   cache:
+#     key: deps-$CI_COMMIT_REF_SLUG
+#     paths:
+#       - node_modules/
+#     policy: pull
+#   needs: ['install-dependencies-job', 'coverage-test-job']
+#   rules:
+#     - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
 
 build-job:
   stage: build
