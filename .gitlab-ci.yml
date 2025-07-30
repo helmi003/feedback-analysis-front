@@ -85,12 +85,20 @@ sonar-test-job:
     SONAR_HOST_URL: "https://158c6a719afc.ngrok-free.app"
   script:
     - echo "Waiting for SonarQube to start..."
-    - until curl -s -u admin:PbUktX3VwbkrCB8@ -H "ngrok-skip-browser-warning: true" https://158c6a719afc.ngrok-free.app/api/system/health | grep -q '"health":"GREEN"'; do echo "Waiting for SonarQube..."; sleep 10; done
+    - >
+      until curl -s -u admin:PbUktX3VwbkrCB8@ 
+      -H "ngrok-skip-browser-warning: true" 
+      https://158c6a719afc.ngrok-free.app/api/system/health | grep -q '"health":"GREEN"'; 
+      do echo "Waiting for SonarQube..."; sleep 10; done
     - echo "Running SonarQube analysis..."
     - echo "SONAR_TOKEN is set:" $(if [ -z "$SONAR_TOKEN" ]; then echo "NO"; else echo "YES"; fi)
     - echo "SONAR_HOST_URL is:" $SONAR_HOST_URL
     - export SONAR_SCANNER_OPTS="-Dsonar.scanner.skipJreProvisioning=true"
-    - sonar-scanner -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url="https://158c6a719afc.ngrok-free.app" -Dsonar.scanner.metadataFilePath=/tmp/sonar-report.json
+    - >
+      sonar-scanner 
+      -Dsonar.token=${SONAR_TOKEN} 
+      -Dsonar.host.url="https://158c6a719afc.ngrok-free.app" 
+      -Dsonar.scanner.metadataFilePath=/tmp/sonar-report.json
     - echo "SonarQube analysis completed."
   cache:
     key: deps-$CI_COMMIT_REF_SLUG
