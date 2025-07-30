@@ -83,23 +83,28 @@ sonar-test-job:
   image: sonarsource/sonar-scanner-cli:latest
   variables:
     SONAR_HOST_URL: "https://158c6a719afc.ngrok-free.app"
+    SONAR_USER_HOME: '${CI_PROJECT_DIR}/.sonar'
+    GIT_DEPTH: '0'
   script:
+    - echo "🔍 Starting SonarQube analysis..."
+    - echo "SONAR_TOKEN is set:" $(if [ -z "$SONAR_TOKEN" ]; then echo "NO"; else echo "YES"; fi)
+    - echo "SONAR_HOST_URL is:" $SONAR_HOST_URL
     - echo "Waiting for SonarQube to start..."
     - >
-      until curl -s -u admin:PbUktX3VwbkrCB8@ 
+      until curl -s -H "Authorization: Bearer ${SONAR_TOKEN}" 
       -H "ngrok-skip-browser-warning: true" 
       https://158c6a719afc.ngrok-free.app/api/system/health | grep -q '"health":"GREEN"'; 
       do echo "Waiting for SonarQube..."; sleep 10; done
     - echo "Running SonarQube analysis..."
-    - echo "SONAR_TOKEN is set:" $(if [ -z "$SONAR_TOKEN" ]; then echo "NO"; else echo "YES"; fi)
-    - echo "SONAR_HOST_URL is:" $SONAR_HOST_URL
-    - export SONAR_SCANNER_OPTS="-Dsonar.scanner.skipJreProvisioning=true"
-    - >
-      sonar-scanner 
-      -Dsonar.token=${SONAR_TOKEN} 
-      -Dsonar.host.url="https://158c6a719afc.ngrok-free.app" 
-      -Dsonar.scanner.metadataFilePath=/tmp/sonar-report.json
-    - echo "SonarQube analysis completed."
+    - |
+      sonar-scanner \
+        -Dsonar.projectKey="gofield_winshot_feedback-analysis-front_7a79d228-4a7f-41e2-9c92-fa38d8a38379" \
+        -Dsonar.sources=src \
+        -Dsonar.host.url="https://158c6a719afc.ngrok-free.app" \
+        -Dsonar.login="$SONAR_TOKEN" \
+        -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+        -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
+    - echo "✅ SonarQube analysis completed."
   cache:
     key: deps-$CI_COMMIT_REF_SLUG
     paths:
