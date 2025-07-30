@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.12](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.11...staging-0.0.12) (2025-07-30)
+
+
+### Bug Fixes
+
+* add authenticated health check for SonarQube ([8d9e89a](https://github.com/helmi003/feedback-analysis-front/commit/8d9e89aef427ccc23d29b6dc83fc7b6837143d67))
+
 ### [0.0.11](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.10...staging-0.0.11) (2025-07-30)
 
 ### [0.0.10](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.9...staging-0.0.10) (2025-07-27)
