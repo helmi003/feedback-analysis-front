@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.13](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.12...staging-0.0.13) (2025-07-30)
+
+
+### Bug Fixes
+
+* fixed the sonar test job ([535c7d7](https://github.com/helmi003/feedback-analysis-front/commit/535c7d73b83f4414c05a9e2a9265a0748f4e6383))
+
 ### [0.0.12](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.11...staging-0.0.12) (2025-07-30)
 
 
