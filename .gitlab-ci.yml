@@ -83,7 +83,7 @@ sonar-test-job:
   image: sonarsource/sonar-scanner-cli:latest
   script:
     - echo "Waiting for SonarQube to start..."
-    - until curl -s ${SONAR_HOST_URL}/api/system/health | grep -q '"health":"GREEN"'; do echo "Waiting for SonarQube..."; sleep 10; done
+    - until curl -s -u admin:PbUktX3VwbkrCB8@ ${SONAR_HOST_URL}/api/system/health | grep -q '"health":"GREEN"'; do echo "Waiting for SonarQube..."; sleep 10; done
     - echo "Running SonarQube analysis..."
     - sonar-scanner
     - echo "SonarQube analysis completed."
