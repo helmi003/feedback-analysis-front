@@ -87,11 +87,8 @@ sonar-test-job:
     GIT_DEPTH: '0'
   script:
     - echo "🔍 Starting SonarQube analysis..."
-    - echo "SONAR_TOKEN is set:" $(if [ -z "$SONAR_TOKEN" ]; then echo "NO"; else echo "YES"; fi)
-    - echo "SONAR_HOST_URL is:" $SONAR_HOST_URL
-    - echo "Running SonarQube analysis..."
-    - sonar-scanner -Dsonar.projectKey="gofield_winshot_feedback-analysis-front_7a79d228-4a7f-41e2-9c92-fa38d8a38379" -Dsonar.sources=src -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login="$SONAR_TOKEN" -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
-    - echo "✅ SonarQube analysis completed."
+    - echo "Using SonarQube server:" $SONAR_HOST_URL
+    - sonar-scanner
   cache:
     key: deps-$CI_COMMIT_REF_SLUG
     paths:
