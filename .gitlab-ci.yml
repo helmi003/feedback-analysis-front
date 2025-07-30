@@ -85,8 +85,7 @@ sonar-test-job:
     - echo "Waiting for SonarQube to start..."
     - until curl -s -u admin:PbUktX3VwbkrCB8@ https://158c6a719afc.ngrok-free.app/api/system/health | grep -q '"health":"GREEN"'; do echo "Waiting for SonarQube..."; sleep 10; done
     - echo "Running SonarQube analysis..."
-    - sonar-scanner -Dsonar.token=${SONAR_TOKEN}
-    - sonar-scanner -Dsonar.host.url="https://158c6a719afc.ngrok-free.app"
+    - sonar-scanner -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url="https://158c6a719afc.ngrok-free.app"
     - echo "SonarQube analysis completed."
   cache:
     key: deps-$CI_COMMIT_REF_SLUG
