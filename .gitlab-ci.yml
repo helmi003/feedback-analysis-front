@@ -92,33 +92,33 @@ sonar-test-job:
     - echo "Testing SonarQube connectivity..."
     - curl -v -H "Authorization: Bearer ${SONAR_TOKEN}" -H "ngrok-skip-browser-warning: true" $SONAR_HOST_URL/api/system/health || echo "Initial health check failed"
     - echo "Waiting for SonarQube to start (max 5 minutes)..."
-    - >
-      timeout=300;
-      counter=0;
+    - |
+      timeout=300
+      counter=0
       while [ $counter -lt $timeout ]; do
-        if curl -s -H "Authorization: Bearer ${SONAR_TOKEN}" -H "ngrok-skip-browser-warning: true" $SONAR_HOST_URL/api/system/health | grep -q '"health":"GREEN"'; then
-          echo "SonarQube is ready!";
-          break;
-        fi;
-        echo "Waiting for SonarQube... ($counter/$timeout seconds)";
-        sleep 10;
-        counter=$((counter + 10));
-      done;
+        if curl -s -H "Authorization: Bearer ${SONAR_TOKEN}" -H "ngrok-skip-browser-warning: true" $SONAR_HOST_URL/api/system/health | grep -q '"'"'"health":"GREEN"'"'"'; then
+          echo "SonarQube is ready!"
+          break
+        fi
+        echo "Waiting for SonarQube... ($counter/$timeout seconds)"
+        sleep 10
+        counter=$((counter + 10))
+      done
       if [ $counter -ge $timeout ]; then
-        echo "Timeout waiting for SonarQube to be ready";
-        echo "Last response:";
-        curl -s -H "Authorization: Bearer ${SONAR_TOKEN}" -H "ngrok-skip-browser-warning: true" $SONAR_HOST_URL/api/system/health || echo "Failed to get response";
-        exit 1;
+        echo "Timeout waiting for SonarQube to be ready"
+        echo "Last response:"
+        curl -s -H "Authorization: Bearer ${SONAR_TOKEN}" -H "ngrok-skip-browser-warning: true" $SONAR_HOST_URL/api/system/health || echo "Failed to get response"
+        exit 1
       fi
     - echo "Running SonarQube analysis..."
-    - >
-      sonar-scanner 
-      -Dsonar.projectKey="gofield_winshot_feedback-analysis-front_7a79d228-4a7f-41e2-9c92-fa38d8a38379" 
-      -Dsonar.sources=src 
-      -Dsonar.host.url=$SONAR_HOST_URL 
-      -Dsonar.login="$SONAR_TOKEN" 
-      -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info 
-      -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
+    - |
+      sonar-scanner \
+        -Dsonar.projectKey="gofield_winshot_feedback-analysis-front_7a79d228-4a7f-41e2-9c92-fa38d8a38379" \
+        -Dsonar.sources=src \
+        -Dsonar.host.url=$SONAR_HOST_URL \
+        -Dsonar.login="$SONAR_TOKEN" \
+        -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+        -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
     - echo "✅ SonarQube analysis completed."
   cache:
     key: deps-$CI_COMMIT_REF_SLUG
