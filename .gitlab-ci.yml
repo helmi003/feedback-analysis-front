@@ -25,7 +25,7 @@ install-dependencies-job:
     paths:
       - node_modules/
   rules:
-    - if: ($CI_COMMIT_TAG =~ /^production-/)  # Only run on production tags to save minutes
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
 
 # unit-test-job:
 #   stage: test
@@ -123,7 +123,7 @@ grafana-dashboard-deploy:
       fi
     - echo "✅ Grafana dashboard deployment completed."
   rules:
-    - if: ($CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_TAG =~ /^production-/)
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
   needs: []
 
 # build-docker-image-job:
@@ -191,4 +191,4 @@ grafana-monitoring-job:
     - docker rm grafana-test
     - echo "🧹 Cleanup completed"
   rules:
-    - if: ($CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_TAG =~ /^production-/)
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
