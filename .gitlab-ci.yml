@@ -131,21 +131,25 @@ deploy-job:
     - mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
     - ssh-keyscan $CI_VM_IPADDRESS >> ~/.ssh/known_hosts
   script:
-    # Pull the latest image and restart the container
     - BUILD_ENVIRONMENT=$(echo "$CI_COMMIT_TAG" | cut -d '-' -f1)
+    - echo "Build environment is $BUILD_ENVIRONMENT"
     - |
       if [ "$BUILD_ENVIRONMENT" = "production" ]; then
         IMAGE_TAG="$CI_REGISTRY_IMAGE:production-$CI_COMMIT_SHA"
       else
         IMAGE_TAG="$CI_REGISTRY_IMAGE:staging-$CI_COMMIT_SHA"
       fi
-    - echo "Deploying image: $IMAGE_TAG"
-    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "echo '$CI_REGISTRY_PASSWORD' | docker login '$CI_REGISTRY' -u '$CI_REGISTRY_USER' --password-stdin"
-    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "docker pull $IMAGE_TAG"
-    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "docker stop feedback-frontend || true"
-    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "docker rm feedback-frontend || true"
-    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "docker run -d --name feedback-frontend -p 80:80 --restart unless-stopped $IMAGE_TAG"
-    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "docker image prune -f"
+    - echo "Deploying image $IMAGE_TAG"
+    - echo "#!/bin/bash" > deploy.sh
+    - echo "echo '$CI_REGISTRY_PASSWORD' | docker login '$CI_REGISTRY' -u '$CI_REGISTRY_USER' --password-stdin" >> deploy.sh
+    - echo "docker pull $IMAGE_TAG" >> deploy.sh
+    - echo "docker stop feedback-frontend || true" >> deploy.sh
+    - echo "docker rm feedback-frontend || true" >> deploy.sh
+    - echo "docker run -d --name feedback-frontend -p 80:80 --restart unless-stopped $IMAGE_TAG" >> deploy.sh
+    - echo "docker image prune -f" >> deploy.sh
+    - chmod +x deploy.sh
+    - scp -i ssh_key deploy.sh ubuntu@$CI_VM_IPADDRESS:/tmp/deploy.sh
+    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "bash /tmp/deploy.sh && rm /tmp/deploy.sh"
   needs: ['build-docker-image-job']
   rules:
     - if: ($CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_TAG =~ /^production-/)
