@@ -151,3 +151,19 @@ deploy-job:
   needs: ['build-docker-image-job']
   rules:
     - if: ($CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_TAG =~ /^production-/)
+
+pages:
+  image: node:22
+  stage: deploy
+  script:
+    - echo "Building for GitLab Pages..."
+    - yarn install
+    - yarn build
+    - mv dist public
+    - echo "📄 Your app will be available at: https://helmi003.gitlab.io/feedback-analysis-front"
+  artifacts:
+    paths:
+      - public
+  needs: ['install-dependencies-job']
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
