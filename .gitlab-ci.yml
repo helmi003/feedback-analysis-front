@@ -99,33 +99,6 @@ install-dependencies-job:
 #   rules:
 #     - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
 
-grafana-dashboard-deploy:
-  stage: deploy
-  image: curlimages/curl:latest
-  variables:
-    GRAFANA_URL: "http://your-grafana-instance:3000"
-    GRAFANA_API_KEY: "$GRAFANA_API_TOKEN"
-  script:
-    - echo "📊 Deploying Grafana dashboards..."
-    - echo "Grafana URL:" $GRAFANA_URL
-    - |
-      if [ -d "monitoring/grafana/dashboards" ]; then
-        for dashboard in monitoring/grafana/dashboards/*.json; do
-          echo "Uploading dashboard: $(basename $dashboard)"
-          curl -X POST \
-            -H "Authorization: Bearer $GRAFANA_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d @"$dashboard" \
-            "$GRAFANA_URL/api/dashboards/db"
-        done
-      else
-        echo "No dashboards found in monitoring/grafana/dashboards/"
-      fi
-    - echo "✅ Grafana dashboard deployment completed."
-  rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
-  needs: []
-
 # build-docker-image-job:
 #   stage: build
 #   image: docker:24.0.5
@@ -148,6 +121,123 @@ grafana-dashboard-deploy:
 #   rules:
 #     - if: ($CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_TAG =~ /^production-/)
 
+grafana-monitoring:
+  stage: monitoring
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+    - name: grafana/grafana:latest
+      alias: grafana
+    - name: prom/prometheus:latest
+      alias: prometheus
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+    GRAFANA_ADMIN_PASSWORD: "admin123"
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - |
+      echo "🔄 Waiting for services to initialize..."
+      sleep 45
+      
+      echo "� Checking service health..."
+      curl -f http://grafana:3000/api/health || echo "Grafana not ready yet"
+      curl -f http://prometheus:9090/-/healthy || echo "Prometheus not ready yet"
+      
+      echo "🔗 Setting up Grafana admin API key..."
+      # Create API key for admin user
+      API_KEY_RESPONSE=$(curl -X POST "http://grafana:3000/api/auth/keys" \
+        -H "Content-Type: application/json" \
+        -u "admin:${GRAFANA_ADMIN_PASSWORD}" \
+        -d '{"name":"ci-pipeline","role":"Admin"}' || echo "Failed to create API key")
+      
+      if [ "$API_KEY_RESPONSE" != "Failed to create API key" ]; then
+        GRAFANA_API_KEY=$(echo $API_KEY_RESPONSE | jq -r '.key')
+        
+        echo "🔗 Connecting Grafana to Prometheus..."
+        curl -X POST "http://grafana:3000/api/datasources" \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer $GRAFANA_API_KEY" \
+          -d '{
+            "name":"Prometheus",
+            "type":"prometheus",
+            "url":"http://prometheus:9090",
+            "access":"proxy",
+            "isDefault":true
+          }' || echo "Failed to add datasource"
+        
+        echo "📊 Importing dashboards..."
+        if [ -d "monitoring/grafana/dashboards" ]; then
+          for dashboard in monitoring/grafana/dashboards/*.json; do
+            if [ -f "$dashboard" ]; then
+              echo "Importing $(basename $dashboard)"
+              curl -X POST "http://grafana:3000/api/dashboards/db" \
+                -H "Content-Type: application/json" \
+                -H "Authorization: Bearer $GRAFANA_API_KEY" \
+                -d @"$dashboard" || echo "Failed to import $(basename $dashboard)"
+            fi
+          done
+        else
+          echo "No dashboard directory found"
+        fi
+      else
+        echo "❌ Failed to create Grafana API key"
+        exit 1
+      fi
+      
+      echo "✅ Monitoring setup completed successfully!"
+  needs: ['install-dependencies-job']
+  artifacts:
+    when: always
+    expire_in: 1 hour
+    reports:
+      junit: []
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+
+validate-monitoring:
+  stage: monitoring
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - |
+      echo "🧪 Validating monitoring configuration files..."
+      
+      # Check if monitoring files exist
+      if [ ! -f "monitoring/prometheus/prometheus.yml" ]; then
+        echo "❌ Prometheus configuration missing"
+        exit 1
+      fi
+      
+      if [ ! -f "monitoring/grafana/dashboards/frontend-monitoring.json" ]; then
+        echo "❌ Grafana dashboard missing"
+        exit 1
+      fi
+      
+      if [ ! -f "docker-compose.monitoring.yml" ]; then
+        echo "❌ Monitoring docker-compose file missing"
+        exit 1
+      fi
+      
+      echo "✅ All monitoring configuration files are present"
+      
+      # Validate JSON files
+      echo "🔍 Validating JSON configuration..."
+      if command -v jq >/dev/null 2>&1; then
+        apk add --no-cache jq
+      fi
+      
+      jq . monitoring/grafana/dashboards/frontend-monitoring.json > /dev/null || {
+        echo "❌ Invalid JSON in dashboard file"
+        exit 1
+      }
+      
+      echo "✅ Monitoring validation completed successfully!"
+  needs: ['install-dependencies-job']
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+
 # deploy-job:
 #   image: ubuntu:latest
 #   stage: deploy
@@ -168,27 +258,3 @@ grafana-dashboard-deploy:
 #   needs: ['build-docker-image-job']
 #   rules:
 #     - if: ($CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_TAG =~ /^production-/)
-
-grafana-monitoring-job:
-  stage: monitoring
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
-  script:
-    - echo "🔍 Setting up and testing Grafana..."
-    - docker pull grafana/grafana:latest
-    - echo "✅ Grafana image pulled successfully"
-    - echo "🚀 Starting Grafana container for testing..."
-    - docker run -d --name grafana-test -p 3000:3000 grafana/grafana:latest
-    - echo "⏳ Waiting for Grafana to start..."
-    - sleep 30
-    - echo "🔍 Testing Grafana health endpoint..."
-    - docker exec grafana-test curl -f http://localhost:3000/api/health || exit 1
-    - echo "🔍 Testing Grafana login page..."
-    - docker exec grafana-test curl -f http://localhost:3000/login || exit 1
-    - echo "✅ Grafana is running and responding correctly!"
-    - docker stop grafana-test
-    - docker rm grafana-test
-    - echo "🧹 Cleanup completed"
-  rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)

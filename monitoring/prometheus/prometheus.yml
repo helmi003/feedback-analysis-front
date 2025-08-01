@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Monitor your React/Node.js application
+  - job_name: "feedback-analysis-frontend"
+    static_configs:
+      - targets: ["host.docker.internal:5173"]  # Vite dev server
+    metrics_path: /metrics
+    scrape_interval: 5s
+
+  # Monitor your backend API if you have one
+  - job_name: "feedback-analysis-api"
+    static_configs:
+      - targets: ["host.docker.internal:3001"]  # Adjust port as needed
+    metrics_path: /metrics
+    scrape_interval: 5s
+
+  # Monitor Docker containers
+  - job_name: "docker"
+    static_configs:
+      - targets: ["host.docker.internal:9323"]
+    scrape_interval: 5s
+
+  # Monitor system metrics using node_exporter
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["host.docker.internal:9100"]
+    scrape_interval: 5s
