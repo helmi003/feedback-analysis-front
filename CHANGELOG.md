@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.30](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.29...staging-0.0.30) (2025-08-01)
+
 ### [0.0.29](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.28...staging-0.0.29) (2025-08-01)
 
 
