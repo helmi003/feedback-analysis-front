@@ -160,7 +160,7 @@ pages:
     - yarn install
     - yarn build
     - mv dist public
-    - echo "📄 Your app will be available at: https://helmi003.gitlab.io/feedback-analysis-front"
+    - echo "📄 Your app will be available at https://helmi003.gitlab.io/feedback-analysis-front"
   artifacts:
     paths:
       - public
