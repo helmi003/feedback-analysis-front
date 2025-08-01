@@ -140,7 +140,8 @@ deploy-job:
         IMAGE_TAG="$CI_REGISTRY_IMAGE:staging-$CI_COMMIT_SHA"
       fi
     - echo "Deploying image: $IMAGE_TAG"
-    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "
+    - |
+      ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "
         echo '$CI_REGISTRY_PASSWORD' | docker login '$CI_REGISTRY' -u '$CI_REGISTRY_USER' --password-stdin &&
         docker pull $IMAGE_TAG &&
         docker stop feedback-frontend || true &&
