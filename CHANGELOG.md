@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.29](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.28...staging-0.0.29) (2025-08-01)
+
+
+### Bug Fixes
+
+* improve GitLab CI monitoring pipeline ([8b0d55e](https://github.com/helmi003/feedback-analysis-front/commit/8b0d55e3cf5bf0e803e4cc3f3398389d4b300969))
+
 ### [0.0.28](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.27...staging-0.0.28) (2025-08-01)
 
 ### [0.0.27](https://github.com/helmi003/feedback-analysis-front/compare/staging-0.0.26...staging-0.0.27) (2025-07-31)
