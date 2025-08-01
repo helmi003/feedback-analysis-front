@@ -140,7 +140,12 @@ deploy-job:
         IMAGE_TAG="$CI_REGISTRY_IMAGE:staging-$CI_COMMIT_SHA"
       fi
     - echo "Deploying image: $IMAGE_TAG"
-    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "echo '$CI_REGISTRY_PASSWORD' | docker login '$CI_REGISTRY' -u '$CI_REGISTRY_USER' --password-stdin && docker pull $IMAGE_TAG && docker stop feedback-frontend || true && docker rm feedback-frontend || true && docker run -d --name feedback-frontend -p 80:80 --restart unless-stopped $IMAGE_TAG && docker image prune -f"
+    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "echo '$CI_REGISTRY_PASSWORD' | docker login '$CI_REGISTRY' -u '$CI_REGISTRY_USER' --password-stdin"
+    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "docker pull $IMAGE_TAG"
+    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "docker stop feedback-frontend || true"
+    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "docker rm feedback-frontend || true"
+    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "docker run -d --name feedback-frontend -p 80:80 --restart unless-stopped $IMAGE_TAG"
+    - ssh -i ssh_key ubuntu@$CI_VM_IPADDRESS "docker image prune -f"
   needs: ['build-docker-image-job']
   rules:
     - if: ($CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_TAG =~ /^production-/)
