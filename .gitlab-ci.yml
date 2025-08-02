@@ -37,7 +37,7 @@ unit-test-job:
     policy: pull
   needs: ['install-dependencies-job']
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_BRANCH == "main")
 
 lint-test-job:
   stage: test
@@ -52,7 +52,7 @@ lint-test-job:
     - yarn lint
     - echo "Lint tests completed."
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_BRANCH == "main")
 
 coverage-test-job:
   stage: test
@@ -75,7 +75,7 @@ coverage-test-job:
       - coverage/
     expire_in: 1 week
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_BRANCH == "main")
 
 sonar-test-job:
   stage: test
@@ -94,7 +94,7 @@ sonar-test-job:
     policy: pull
   needs: ['install-dependencies-job', 'coverage-test-job']
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_BRANCH == "main")
 
 build-job:
   stage: build
@@ -108,7 +108,7 @@ build-job:
     paths:
       - dist/
     expire_in: 1 week
-  needs: ['install-dependencies-job']
+  needs: ['unit-test-job', 'lint-test-job', 'coverage-test-job']
   rules:
     - if: ($CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event")
 
@@ -133,7 +133,7 @@ build-docker-image-job:
     - echo "✅ Docker image built and pushed successfully!"
     - echo "🐳 Image:$CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA"
     - echo "🐳 Latest:$CI_REGISTRY_IMAGE:latest"
-  needs: ['install-dependencies-job']
+  needs: ['unit-test-job', 'lint-test-job', 'coverage-test-job']
   rules:
     - if: ($CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event")
 
