@@ -142,13 +142,13 @@ deploy-job:
   script:
     - echo "🎉 Deployment Ready!"
     - echo "🌐 Live deployment https://feedback-analysis.netlify.app"
-    - echo "🐳 Docker image: $CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA"
+    - echo "🐳 Docker image $CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA"
     - echo "📦 Static artifacts available for download"
     - echo ""
-    - echo "✅ Your app is deployed in multiple formats:"
-    - echo "  • Netlify (live) https://feedback-analysis.netlify.app"
-    - echo "  • Docker image Ready for container deployment"
-    - echo "  • Static files Available as build artifacts"
+    - echo "✅ Your app is deployed in multiple formats"
+    - echo "• Netlify (live) https://feedback-analysis.netlify.app"
+    - echo "• Docker image Ready for container deployment"
+    - echo "• Static files Available as build artifacts"
   needs: ['build-job', 'build-docker-image-job']
   rules:
     - if: ($CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event")
