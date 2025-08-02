@@ -131,8 +131,8 @@ build-docker-image-job:
     - docker tag "$CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA" "$CI_REGISTRY_IMAGE:latest"
     - docker push "$CI_REGISTRY_IMAGE:latest"
     - echo "✅ Docker image built and pushed successfully!"
-    - echo "🐳 Image: $CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA"
-    - echo "🐳 Latest: $CI_REGISTRY_IMAGE:latest"
+    - echo "🐳 Image:$CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA"
+    - echo "🐳 Latest:$CI_REGISTRY_IMAGE:latest"
   needs: ['install-dependencies-job']
   rules:
     - if: ($CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event")
