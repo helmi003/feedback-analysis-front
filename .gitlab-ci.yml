@@ -1,5 +1,13 @@
-variables:
-  DOCKER_TLS_CERTDIR: '/certs'
+varidefault:
+  image: node:22
+
+stages:
+  - install
+  - test
+  - build
+  - deploy
+
+install-dependencies-job:_TLS_CERTDIR: '/certs'
   SONAR_HOST_URL: "https://158c6a719afc.ngrok-free.app"
 
 default:
@@ -164,4 +172,4 @@ deploy-job:
     - echo "• Static files Available as build artifacts"
   needs: ['build-job', 'build-docker-image-job']
   rules:
-    - if: ($CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event")
+    - if: ($CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
