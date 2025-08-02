@@ -4,14 +4,11 @@ variables:
 
 default:
   image: node:22
-  services:
-    - docker:24.0.5-dind
 
 stages:
   - install
   - test
   - build
-  - monitoring
   - deploy
 
 install-dependencies-job:
@@ -25,79 +22,95 @@ install-dependencies-job:
     paths:
       - node_modules/
   rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_BRANCH == "main")
+
+unit-test-job:
+  stage: test
+  script:
+    - echo "Running unit tests..."
+    - yarn test:run
+    - echo "Unit tests completed."
+  cache:
+    key: deps-$CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+    policy: pull
+  needs: ['install-dependencies-job']
+  rules:
     - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
 
-# unit-test-job:
-#   stage: test
-#   script:
-#     - echo "Running unit tests..."
-#     - yarn test:run
-#     - echo "Unit tests completed."
-#   cache:
-#     key: deps-$CI_COMMIT_REF_SLUG
-#     paths:
-#       - node_modules/
-#     policy: pull
-#   needs: ['install-dependencies-job']
-#   rules:
-#     - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+lint-test-job:
+  stage: test
+  cache:
+    key: deps-$CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+    policy: pull
+  needs: ['install-dependencies-job']
+  script:
+    - echo "Running lint tests..."
+    - yarn lint
+    - echo "Lint tests completed."
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
 
-# lint-test-job:
-#   stage: test
-#   cache:
-#     key: deps-$CI_COMMIT_REF_SLUG
-#     paths:
-#       - node_modules/
-#     policy: pull
-#   needs: ['install-dependencies-job']
-#   script:
-#     - echo "Running lint tests..."
-#     - yarn lint
-#     - echo "Lint tests completed."
-#   rules:
-#     - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+coverage-test-job:
+  stage: test
+  script:
+    - echo "Running tests with coverage..."
+    - yarn test:coverage
+    - echo "Coverage tests completed."
+  cache:
+    key: deps-$CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+    policy: pull
+  needs: ['install-dependencies-job']
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    paths:
+      - coverage/
+    expire_in: 1 week
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
 
-# coverage-test-job:
-#   stage: test
-#   script:
-#     - echo "Running tests with coverage..."
-#     - yarn test:coverage
-#     - echo "Coverage tests completed."
-#   cache:
-#     key: deps-$CI_COMMIT_REF_SLUG
-#     paths:
-#       - node_modules/
-#     policy: pull
-#   needs: ['install-dependencies-job']
-#   artifacts:
-#     reports:
-#       coverage_report:
-#         coverage_format: cobertura
-#         path: coverage/cobertura-coverage.xml
-#     paths:
-#       - coverage/
-#     expire_in: 1 week
-#   rules:
-#     - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+sonar-test-job:
+  stage: test
+  image: sonarsource/sonar-scanner-cli:latest
+  variables:
+    SONAR_USER_HOME: '${CI_PROJECT_DIR}/.sonar'
+    GIT_DEPTH: '0'
+  script:
+    - echo "🔍 Starting SonarQube analysis..."
+    - echo "Using SonarQube server:" $SONAR_HOST_URL
+    - sonar-scanner
+  cache:
+    key: deps-$CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+    policy: pull
+  needs: ['install-dependencies-job', 'coverage-test-job']
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
 
-# sonar-test-job:
-#   stage: test
-#   image: sonarsource/sonar-scanner-cli:latest
-#   variables:
-#     SONAR_USER_HOME: '${CI_PROJECT_DIR}/.sonar'
-#     GIT_DEPTH: '0'
-#   script:
-#     - echo "🔍 Starting SonarQube analysis..."
-#     - echo "Using SonarQube server:" $SONAR_HOST_URL
-#     - sonar-scanner
-#   cache:
-#     key: deps-$CI_COMMIT_REF_SLUG
-#     paths:
-#       - node_modules/
-#     policy: pull
-#   needs: ['install-dependencies-job', 'coverage-test-job']
-#   rules:
-#     - if: ($CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG =~ /^production-/ || $CI_COMMIT_TAG =~ /^staging-/)
+build-job:
+  stage: build
+  script:
+    - echo "🚀 Building React app for deployment..."
+    - yarn install
+    - yarn build
+    - echo "✅ Build completed successfully!"
+  artifacts:
+    name: "feedback-analysis-front-$CI_COMMIT_SHA"
+    paths:
+      - dist/
+    expire_in: 1 week
+  needs: ['install-dependencies-job']
+  rules:
+    - if: ($CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event")
 
 build-docker-image-job:
   stage: build
@@ -111,59 +124,31 @@ build-docker-image-job:
     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
     - apk add --no-cache --upgrade bash git
   script:
-    - echo "Building docker image..."
-    - BUILD_ENVIRONMENT=$(echo "$CI_COMMIT_TAG" | cut -d '-' -f1)
-    - echo "CI_COMMIT_REF_NAME is $CI_COMMIT_REF_NAME"
-    - echo "BUILD_ENVIRONMENT is $BUILD_ENVIRONMENT"
-    - chmod +x ./build-docker-image.sh
-    - ./build-docker-image.sh $BUILD_ENVIRONMENT --push
+    - echo "🐳 Building Docker image..."
+    - echo "Building image for main branch deployment"
+    - docker build -t "$CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA" .
+    - docker push "$CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA"
+    - docker tag "$CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA" "$CI_REGISTRY_IMAGE:latest"
+    - docker push "$CI_REGISTRY_IMAGE:latest"
+    - echo "✅ Docker image built and pushed successfully!"
+    - echo "🐳 Image: $CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA"
+    - echo "🐳 Latest: $CI_REGISTRY_IMAGE:latest"
   needs: ['install-dependencies-job']
   rules:
-    - if: ($CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_TAG =~ /^production-/)
+    - if: ($CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event")
 
 deploy-job:
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
-  variables:
-    DOCKER_TLS_CERTDIR: "/certs"
-  stage: deploy
-  before_script:
-    - docker info
-    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
-  script:
-    - echo "Deploying nginx container..."
-    - BUILD_ENVIRONMENT=$(echo "$CI_COMMIT_TAG" | cut -d '-' -f1)
-    - echo "Build environment is $BUILD_ENVIRONMENT"
-    - |
-      if [ "$BUILD_ENVIRONMENT" = "production" ]; then
-        export IMAGE_TAG="$CI_REGISTRY_IMAGE:production-$CI_COMMIT_SHA"
-      else
-        export IMAGE_TAG="$CI_REGISTRY_IMAGE:staging-$CI_COMMIT_SHA"
-      fi
-      echo "Pulling image $IMAGE_TAG"
-      docker pull $IMAGE_TAG
-      echo "Running nginx container on port 3002"
-      docker run -d --name feedback-frontend-$CI_COMMIT_SHA -p 3002:80 $IMAGE_TAG
-      echo "✅ Nginx deployment completed!"
-      echo "🌐 Your app is running with nginx on port 3002"
-      echo "📁 Container name: feedback-frontend-$CI_COMMIT_SHA"
-  needs: ['build-docker-image-job']
-  rules:
-    - if: ($CI_COMMIT_TAG =~ /^staging-/ || $CI_COMMIT_TAG =~ /^production-/)
-
-pages:
-  image: node:22
   stage: deploy
   script:
-    - echo "Building for GitLab Pages..."
-    - yarn install
-    - yarn build
-    - mv dist public
-    - echo "📄 Your app will be available at https://helmi003.gitlab.io/feedback-analysis-front"
-  artifacts:
-    paths:
-      - public
-  needs: ['install-dependencies-job']
+    - echo "🎉 Deployment Ready!"
+    - echo "🌐 Live deployment https://feedback-analysis.netlify.app"
+    - echo "🐳 Docker image: $CI_REGISTRY_IMAGE:main-$CI_COMMIT_SHA"
+    - echo "📦 Static artifacts available for download"
+    - echo ""
+    - echo "✅ Your app is deployed in multiple formats:"
+    - echo "  • Netlify (live) https://feedback-analysis.netlify.app"
+    - echo "  • Docker image Ready for container deployment"
+    - echo "  • Static files Available as build artifacts"
+  needs: ['build-job', 'build-docker-image-job']
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: ($CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event")
