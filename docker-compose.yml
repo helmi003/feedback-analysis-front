@@ -1,8 +1,11 @@
 services:
   feedback-frontend:
+    # Option 1: Build locally (current setup)
     build:
       context: .
       dockerfile: Dockerfile
+    # Option 2: Use GitLab registry image (uncomment below and comment build section)
+    # image: registry.gitlab.com/helmi003/feedback-analysis-front:latest
     ports:
       - "3002:80"
     environment:

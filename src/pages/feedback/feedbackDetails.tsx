@@ -37,7 +37,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ visible, feedback, onClos
       <div style={{ marginBottom: 16 }}><b>Comment:</b> {feedback.comment}</div>
       <div style={{ marginBottom: 16 }}>
         <b>Rating:</b>{' '}
-        <Rate disabled defaultValue={feedback.rating} style={{ color: '#faad14', marginLeft: 8 }} />
+        <Rate value={feedback.rating} disabled style={{ color: '#faad14', marginLeft: 8 }} />
       </div>
       <div style={{ marginBottom: 16 }}>
         <b>Status:</b>{' '}

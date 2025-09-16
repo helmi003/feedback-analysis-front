@@ -1,6 +1,6 @@
 variables:
   DOCKER_TLS_CERTDIR: '/certs'
-  SONAR_HOST_URL: "https://158c6a719afc.ngrok-free.app"
+  SONAR_HOST_URL: "https://ab8fb28833b9.ngrok-free.app"
 
 default:
   image: node:22
